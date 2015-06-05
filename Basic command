@@ -1,3 +1,55 @@
 MySQLをインストール
 # yum install mysql-server
 
+MySQLが自動起動するように設定
+# chkconfig mysqld on
+
+MySQLが自動起動する設定になっていることを確認
+# chkconfig --list mysqld
+mysqld         	0:off	1:off	2:on	3:on	4:on	5:on	6:off
+
+試しにMySQLサービスを再起動
+# /etc/init.d/mysqld restart
+
+MySQLにrootユーザでログイン
+# mysql -u root
+
+MySQLのrootユーザにパスワードを設定
+mysql> set password for root@localhost=password('******');    # ******の部分にはパスワードを入力
+
+MySQLからログアウトして、パスワード無しではログインできないことを確認
+mysql> exit
+# mysql -u root
+ERROR 1045 (28000): Access denied for user 'root'@'localhost' (using password: NO)
+
+パスワード有りでMySQLにログインできることを確認
+# mysql -u root -p******    # ******の部分にはパスワードを入力
+
+MySQLのバージョン確認
+mysql> select version();
+
+ステータス（文字コードとかバージョンとか？）を確認
+mysql> status
+--------------
+mysql  Ver 14.14 Distrib 5.1.73, for redhat-linux-gnu (i386) using readline 5.1
+
+Connection id:		7
+Current database:	
+Current user:		root@localhost
+SSL:			Not in use
+Current pager:		stdout
+Using outfile:		''
+Using delimiter:	;
+Server version:		5.1.73 Source distribution
+Protocol version:	10
+Connection:		Localhost via UNIX socket
+Server characterset:	latin1
+Db     characterset:	latin1
+Client characterset:	latin1
+Conn.  characterset:	latin1
+UNIX socket:		/var/lib/mysql/mysql.sock
+Uptime:			18 min 12 sec
+
+Threads: 1  Questions: 13  Slow queries: 0  Opens: 15  Flush tables: 1  Open tables: 8  Queries per second avg: 0.11
+--------------
+

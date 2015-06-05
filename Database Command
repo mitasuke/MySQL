@@ -52,3 +52,36 @@ mysql> select カラム名 from 対象データベース名.テーブル名;
 mysql> select * from mysql.user;　　#mysqlデータベースのuserテーブルの内容を全て表示させる
 
 
+テーブルのカラム構造を表示
+mysql> desc テーブル名;
+
+例：
+mysql> desc tb1;
++-------+-------------+------+-----+---------+-------+
+| Field | Type        | Null | Key | Default | Extra |
++-------+-------------+------+-----+---------+-------+
+| bang  | varchar(10) | YES  |     | NULL    |       |
+| nama  | varchar(10) | YES  |     | NULL    |       |
+| tosi  | int(11)     | YES  |     | NULL    |       |
++-------+-------------+------+-----+---------+-------+
+
+
+データをテーブルに挿入する
+mysql> insert into テーブル名 values(データ,データ,･･････);
+
+例：
+mysql> insert into tb1 values('A101','佐藤',40);
+
+★文字列データはシングルクォーテーションかダブルクォーテーションで囲む。
+★VARCHAR(10)などと文字数に制限をつけて、この数を超えた文字列を挿入してもエラーは表示されない。
+　超過した文字だけが予告無しに消える。
+★事前に「desc テーブル名;」でテーブルのカラム構造を把握しておいた方が良い。
+
+
+カラムを指定してテーブルにデータを挿入する
+mysql> insert into テーブル名 (カラム名,カラム名,･･････) values(データ,データ,･･････);
+
+例：
+mysql> insert into tb1 (tosi,nama,bang) values(23,'渡辺','A104');
+
+

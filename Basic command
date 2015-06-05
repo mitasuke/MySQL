@@ -1,1 +1,3 @@
+MySQLをインストール
+# yum install mysql-server
 

@@ -1,1 +1,54 @@
+データベースを新規作成
+mysql> create database データベース名;
+
+データベースの一覧を表示
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| db1                |
+| mysql              |　#mysqlはMySQLの情報が保管されているデータベース
+| test               |　#testは勝手に作られる空っぽのデータベース
++--------------------+
+4 rows in set (0.00 sec)
+
+使用するデータベースを指定する
+mysql> use データベース名　　#コマンドの最後に「;」をつけなくて良い
+
+現在使用しているデータベースを表示
+mysql> select database();
++------------+
+| database() |
++------------+
+| db1        |
++------------+
+1 row in set (0.00 sec)
+
+＜参考＞
+データベースを指定してMySQLにログインする
+# mysql データベース名 -u root -pパスワード
+
+データベースにテーブルを作成する
+mysql> create table テーブル名(カラム名 データ型,カラム名 データ型,･･････);
+
+例：
+mysql> create table tb1(bang VARCHAR(10),nama VARCHAR(10),tosi INT);
+
+
+現在使用しているデータベースの全てのテーブルを表示
+mysql> show tables;
++---------------+
+| Tables_in_db1 |
++---------------+
+| tb1           |
++---------------+
+
+＜参考＞
+現在使用しているデータベース以外のデータベースに存在するテーブルに対する操作
+mysql> select カラム名 from 対象データベース名.テーブル名;
+
+例：
+mysql> select * from mysql.user;　　#mysqlデータベースのuserテーブルの内容を全て表示させる
+
 

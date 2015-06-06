@@ -1,1 +1,70 @@
+日付データを入力するテーブルを作成して、データを挿入してみる。
+
+日付型のテーブルhizukeを作成する。
+mysql> create table hizuke(a date);     ★ a はカラム名、date は DATA型 を意味する
+
+テーブルが作成されたことを確認。
+mysql> show tables;
++---------------+
+| Tables_in_db1 |
++---------------+
+| hizuke        |
+| tb1           |
+| tb1a          |
+| tb1b          |
+| tb1c          |
++---------------+
+
+hizukeテーブルのカラム構造を確認。
+mysql> desc hizuke;
++-------+------+------+-----+---------+-------+
+| Field | Type | Null | Key | Default | Extra |
++-------+------+------+-----+---------+-------+
+| a     | date | YES  |     | NULL    |       |　　★Type が date になってる
++-------+------+------+-----+---------+-------+
+
+データを挿入してみる。
+mysql> insert into hizuke(a) values('2015-06-05');
+
+★日付・時刻型のデータは、シングルクォーテーションかダブルクォーテーションで囲む。
+★MySQLでは、必ず日付は「YYYY-MM-DD」、時刻は「HH:MM:SS」の形式で入力する。
+
+mysql> select * from hizuke;
++------------+
+| a          |
++------------+
+| 2015-06-05 |
++------------+
+
+
+＜年月日時分秒 の値が保管できるテーブルを作成する＞
+mysql> create table hizu_ziko(hizu datetime);　　★カラムは DATETIME型
+
+mysql> insert into hizu_ziko values('2015-06-05 09:30:11');
+
+mysql> select * from hizu_ziko;
++---------------------+
+| hizu                |
++---------------------+
+| 2015-06-05 09:30:11 |
++---------------------+
+
+★以下のように、データ挿入時に年月日と時刻の間にスペースを入れなかったり、別の文字列を挿入しようとすると、
+　「Query OK」とは出るが、テーブルには「0000-00-00 00:00:00」が入っていた・・・。
+　
+mysql> insert into hizu_ziko(hizu) values('2015-06-0508:30:11');
+Query OK, 1 row affected, 1 warning (0.00 sec)
+
+mysql> insert into hizu_ziko(hizu) values('test');
+Query OK, 1 row affected, 1 warning (0.00 sec)
+
+mysql> select * from hizu_ziko;
++---------------------+
+| hizu                |
++---------------------+
+| 2015-06-05 09:30:11 |
+| 0000-00-00 00:00:00 |
+| 0000-00-00 00:00:00 |
++---------------------+
+
 

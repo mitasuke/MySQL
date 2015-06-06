@@ -1,1 +1,69 @@
+カラムのデータ型を変更する。
+mysql> alter table テーブル名 modify カラム名 データ型;
+
+例：
+mysql> alter table tb1c modify nama varchar(100);
+
+mysql> desc tb1c;
++-------+--------------+------+-----+---------+-------+
+| Field | Type         | Null | Key | Default | Extra |
++-------+--------------+------+-----+---------+-------+
+| bang  | varchar(10)  | YES  |     | NULL    |       |
+| nama  | varchar(100) | YES  |     | NULL    |       |　★100 になっている
+| tosi  | int(11)      | YES  |     | NULL    |       |
++-------+--------------+------+-----+---------+-------+
+
+★カラムにデータが既に存在する場合、データ型の変更はしない方が良い。
+
+
+テーブルにカラムを追加する。
+mysql> alter table テーブル名 add カラム名 データ型;
+
+例：
+mysql> alter table tb1c add umare datetime;
+
+mysql> desc tb1c;
++-------+--------------+------+-----+---------+-------+
+| Field | Type         | Null | Key | Default | Extra |
++-------+--------------+------+-----+---------+-------+
+| bang  | varchar(10)  | YES  |     | NULL    |       |
+| nama  | varchar(100) | YES  |     | NULL    |       |
+| tosi  | int(11)      | YES  |     | NULL    |       |
+| umare | datetime     | YES  |     | NULL    |       |　★datetime型のカラムumareが追加された
++-------+--------------+------+-----+---------+-------+
+
+
+テーブルの先頭にカラムを追加する。（デフォルトでは最後にカラムが追加される）
+mysql> alter table テーブル名 add カラム名 データ型 first;
+
+例：
+mysql> alter table tb1d add umare datetime first;
+
+mysql> desc tb1d;
++-------+-------------+------+-----+---------+-------+
+| Field | Type        | Null | Key | Default | Extra |
++-------+-------------+------+-----+---------+-------+
+| umare | datetime    | YES  |     | NULL    |       |　★テーブルの先頭にカラムumareが追加された
+| bang  | varchar(10) | YES  |     | NULL    |       |
+| nama  | varchar(10) | YES  |     | NULL    |       |
+| tosi  | int(11)     | YES  |     | NULL    |       |
++-------+-------------+------+-----+---------+-------+
+
+
+カラムを好きな位置に追加する。
+mysql> alter table テーブル名 add 追加するカラム名 データ型 after 追加するカラム名の前の列のカラム名;
+
+例：
+mysql> alter table tb1e add umare datetime after bang;
+
+mysql> desc tb1e;
++-------+-------------+------+-----+---------+-------+
+| Field | Type        | Null | Key | Default | Extra |
++-------+-------------+------+-----+---------+-------+
+| bang  | varchar(10) | YES  |     | NULL    |       |
+| umare | datetime    | YES  |     | NULL    |       |　★カラムbangの後ろにカラムumareが追加された
+| nama  | varchar(10) | YES  |     | NULL    |       |
+| tosi  | int(11)     | YES  |     | NULL    |       |
++-------+-------------+------+-----+---------+-------+
+
 

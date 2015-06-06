@@ -85,3 +85,10 @@ mysql> insert into テーブル名 (カラム名,カラム名,･･････
 mysql> insert into tb1 (tosi,nama,bang) values(23,'渡辺','A104');
 
 
+一度に複数のデータをテーブルに挿入する
+mysql> insert into テーブル名 (カラム名,カラム名,･･････) values(データ,データ,･･･),(データ,データ,･･･),･･････;
+
+例：
+mysql> insert into tb1 (bang,nama,tosi) values('A101','佐藤',40),('A102','高橋',28),('A103','中川',20),('A104','渡辺',23), ('A105','西沢',35);
+
+

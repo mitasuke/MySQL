@@ -11,6 +11,10 @@ mysqld         	0:off	1:off	2:on	3:on	4:on	5:on	6:off
 試しにMySQLサービスを再起動
 # /etc/init.d/mysqld restart
 
+MySQLサービスの状態を確認
+# /etc/init.d/mysqld status
+mysqld (pid  22862) is running...
+
 MySQLにrootユーザでログイン
 # mysql -u root
 

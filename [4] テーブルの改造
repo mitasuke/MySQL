@@ -51,7 +51,7 @@ mysql> desc tb1d;
 
 
 カラムを好きな位置に追加する。
-mysql> alter table テーブル名 add 追加するカラム名 データ型 after 追加するカラム名の前の列のカラム名;
+mysql> alter table テーブル名 add 追加するカラム名 データ型 after 追加するカラムの前の列のカラム名;
 
 例：
 mysql> alter table tb1e add umare datetime after bang;

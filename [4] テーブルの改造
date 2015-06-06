@@ -166,4 +166,66 @@ mysql> desc renzoku;
 | b     | varchar(10) | YES  |     | NULL    |                |
 +-------+-------------+------+-----+---------+----------------+
 
+上記のテーブルのカラムbにだけ値を挿入すれば、カラムaには自動で連番が振られる。
+
+mysql> insert into renzoku(b) values('子');
+mysql> insert into renzoku(b) values('丑');
+mysql> insert into renzoku(b) values('寅');
+mysql> select * from renzoku;
++---+------+
+| a | b    |
++---+------+
+| 1 | 子   |
+| 2 | 丑   |
+| 3 | 寅   |
++---+------+
+
+自分の好きな値から連番を振ることもできる。
+mysql> insert into renzoku values(100,'てすと');
+
+上記のようにすれば、カラムaに100が挿入され、次のデータからは101,102,･･･と採番されるようになる。
+
+テーブルにある全レコードを削除して新たにデータを挿入した場合、番号は続きから振られる。
+mysql> delete from renzoku;　　★テーブルrenzokuの全レコードを削除
+mysql> select * from renzoku;
+Empty set (0.00 sec)
+mysql> insert into renzoku(b) values('test');
+mysql> select * from renzoku;
++---+------+
+| a | b    |
++---+------+
+| 4 | test |　　★連続番号が 4 から振られている
++---+------+
+
+こんな時に連続番号を1から振りたい場合、AUTO_INCREMENT を初期化する必要がある。
+mysql> alter table テーブル名 auto_increment=1;
+
+
+カラムの初期値を設定したテーブルを作成する。
+mysql> create table テーブル名(カラム名 データ型 default カラムの初期値,･･････);
+
+例：
+mysql> create table tb1g(bang varchar(10),nama varchar(10) default '氏名未入力',tosi int);
+
+mysql> desc tb1g;
++-------+-------------+------+-----+-----------------+-------+
+| Field | Type        | Null | Key | Default         | Extra |
++-------+-------------+------+-----+-----------------+-------+
+| bang  | varchar(10) | YES  |     | NULL            |       |
+| nama  | varchar(10) | YES  |     | 氏名未入力      |       |　★Default(初期値)が、NULLではなく「氏名未入力」になっている。
+| tosi  | int(11)     | YES  |     | NULL            |       |
++-------+-------------+------+-----+-----------------+-------+
+
+試しにbangとtosiの部分にだけデータを挿入すると、namaの部分には「氏名未入力」と挿入される。
+mysql> insert into tb1g(bang,tosi) values('N999',38);
+mysql> select * from tb1g;
++------+-----------------+------+
+| bang | nama            | tosi |
++------+-----------------+------+
+| N999 | 氏名未入力      |   38 |
++------+-----------------+------+
+
+既に存在するテーブルに対してカラムの初期値を設定する場合は ALTER TABLE ～ MODIFY文 を使用する。
+mysql> alter table tb1g modify nama varchar(10) default '氏名未入力';
+
 

@@ -1,1 +1,217 @@
+テーブルにデータを突っ込んだ後に select で表示させたら、
+漢字が「？？？」と表示されて「？？？」となったので、文字コードを UTF-8 に修正して直るか実験。
+
+後から気づくと面倒くさいので、初期の頃にやった方が良いと感じました。
+
+●参考：
+http://blog.izumo.asia/2011/09/03/tipsmysql%E3%81%A7%E6%97%A5%E6%9C%AC%E8%AA%9Eutf-8%E3%82%92%E6%89%B1%E3%81%86%E9%9A%9B%E3%81%AE%E8%A8%AD%E5%AE%9A/
+http://interu.hatenablog.com/entry/2013/11/19/120322
+http://kzworks.at.webry.info/200903/article_14.html
+
+
+selectしたら漢字の部分がハテナマークになってる。
+mysql> select bang,nama from tb1;
++------+------+
+| bang | nama |
++------+------+
+| A101 | ??   |
+| A102 | ??   |
+| A103 | ??   |
+| A104 | ??   |
+| A101 | ??   |
+| A102 | ??   |
+| A103 | ??   |
+| A104 | ??   |
+| A105 | ??   |
++------+------+
+
+
+現在の状況を確認すると、一部の文字コードが latin1 になっている。
+mysql> status
+～～省略～～
+Server characterset:    latin1
+Db     characterset:    latin1
+Client characterset:    utf8
+Conn.  characterset:    utf8
+～～省略～～
+
+
+MySQLから一旦抜けて、設定ファイルを修正する。
+vi /etc/my.cnf
+
+[mysqld]の中にこの3行を追記
+---------------------------------
+[mysqld]
+default-character-set=utf8
+character-set-server=utf8
+skip-character-set-client-handshake
+---------------------------------
+
+
+MySQLを再起動したら、再起動に失敗して起動しなくなる。
+# /etc/init.d/mysqld restart
+Stopping mysqld:                                           [  OK  ]
+MySQL Daemon failed to start.
+Starting mysqld:                                           [FAILED]
+
+
+色々試した結果、「default-character-set=utf8」をコメントアウトしたら起動した・・・。
+vi /etc/my.cnf
+
+[mysqld]の中の1行をコメントアウト
+---------------------------------
+[mysqld]
+#default-character-set=utf8
+character-set-server=utf8
+skip-character-set-client-handshake
+---------------------------------
+
+# /etc/init.d/mysqld restart
+Stopping mysqld:                                           [  OK  ]
+Starting mysqld:                                           [  OK  ]
+
+
+MySQLにログインして確認したら、パッと見はUTF-8になってそう。
+mysql> status
+～～省略～～
+Server characterset:    utf8
+Db     characterset:    utf8
+Client characterset:    utf8
+Conn.  characterset:    utf8
+～～省略～～
+
+でも文字化けは直っていない。
+mysql> select bang,nama from tb1;
++------+------+
+| bang | nama |
++------+------+
+| A101 | ??   |
+| A102 | ??   |
+| A103 | ??   |
+| A104 | ??   |
+| A101 | ??   |
+| A102 | ??   |
+| A103 | ??   |
+| A104 | ??   |
+| A105 | ??   |
++------+------+
+
+
+以下、参考サイトより抜粋：
+=======================================================================================================
+MySQLでは、サーバ全体／データベース／テーブル／カラム という括りで文字コードを
+指定できるようになっています。
+
+データベース作成時に文字コードが指定されていなかったら、サーバ全体で設定されている情報を参照して作成されます。
+
+同様にテーブル作成時も、文字コード指定がなかったらデータベースで指定されている文字コードを適用します。
+カラムについても同様のロジックです。
+
+なので、テーブル作成時に参照されたデータベースの文字コード情報を確認したら latin1 になっているはずですので、
+それを確認してみます。
+=======================================================================================================
+
+
+mysql> show variables like 'character%';
++--------------------------+----------------------------+
+| Variable_name            | Value                      |
++--------------------------+----------------------------+
+| character_set_client     | utf8                       |
+| character_set_connection | utf8                       |
+| character_set_database   | latin1                     |　★latin1 になってる
+| character_set_filesystem | binary                     |
+| character_set_results    | utf8                       |
+| character_set_server     | utf8                       |
+| character_set_system     | utf8                       |
+| character_sets_dir       | /usr/share/mysql/charsets/ |
++--------------------------+----------------------------+
+
+SESSIONの情報ではなくGLOBALの情報も確認する。
+
+mysql> show global variables like 'character%';
++--------------------------+----------------------------+
+| Variable_name            | Value                      |
++--------------------------+----------------------------+
+| character_set_client     | utf8                       |
+| character_set_connection | utf8                       |
+| character_set_database   | utf8                       |
+| character_set_filesystem | binary                     |
+| character_set_results    | utf8                       |
+| character_set_server     | utf8                       |
+| character_set_system     | utf8                       |
+| character_sets_dir       | /usr/share/mysql/charsets/ |
++--------------------------+----------------------------+
+
+GLOBALの方は、パラメータグループで設定されている値が反映されている。
+
+
+以下、参考サイトより抜粋：
+=======================================================================================================
+mysqlのコネクションを何度も繋ぎ直してもshow variablesの出力値は変化しないため、
+テーブル作成時はここでセットされている値(latin1)が参照されます。
+では、この値はどこを参照しているかというと、create database した時の値です。
+======================================================================================================
+
+
+データベースdb1を create database した時の文字コードの設定を確認する。
+mysql> show create database `db1`;
++----------+----------------------------------------------------------------+
+| Database | Create Database                                                |
++----------+----------------------------------------------------------------+
+| db1      | CREATE DATABASE `db1` /*!40100 DEFAULT CHARACTER SET latin1 */ |　★latin1になってる
++----------+----------------------------------------------------------------+
+
+
+とりあえず、新規にテーブルが作成された時に latin1 で作成されないようにする。
+mysql> ALTER DATABASE `db1` default character set utf8;
+
+
+データベースの文字コードが UTF-8 になったか確認する。
+mysql> show create database `db1`;
++----------+--------------------------------------------------------------+
+| Database | Create Database                                              |
++----------+--------------------------------------------------------------+
+| db1      | CREATE DATABASE `db1` /*!40100 DEFAULT CHARACTER SET utf8 */ |　★utf8になってる
++----------+--------------------------------------------------------------+
+
+
+サーバ設定も更新されている。
+mysql> show variables like 'character%';
++--------------------------+----------------------------+
+| Variable_name            | Value                      |
++--------------------------+----------------------------+
+| character_set_client     | utf8                       |
+| character_set_connection | utf8                       |
+| character_set_database   | utf8                       |　★utf8になってる
+| character_set_filesystem | binary                     |
+| character_set_results    | utf8                       |
+| character_set_server     | utf8                       |
+| character_set_system     | utf8                       |
+| character_sets_dir       | /usr/share/mysql/charsets/ |
++--------------------------+----------------------------+
+
+
+テーブルtb1に新規にカラムを追加した場合、デフォルトでutf8になるようにするには以下を実行する。
+mysql> ALTER TABLE tb1 DEFAULT CHARACTER SET utf8;
+
+
+上記の設定は「これから作成するDBやテーブルに関しては大丈夫」というものなので、
+既に作成しているテーブルtb1の文字化けはこれだけでは直らない。
+今回は drop で tb1 を1回消して、さっさと作り直すことにする。
+
+mysql> drop table tb1;
+mysql> show tables;
+Empty set (0.00 sec)
+mysql> create table tb1(bang VARCHAR(10),nama VARCHAR(10),tosi INT);
+mysql> insert into tb1 values('A101','佐藤',40);
+mysql> select * from tb1;
++------+--------+------+
+| bang | nama   | tosi |
++------+--------+------+
+| A101 | 佐藤   |   40 |　★漢字がちゃんと表示された！
++------+--------+------+
+
+
+適当なタイミングでMySQLを再起動しておく。（不要？）
+# /etc/init.d/mysqld restart
 

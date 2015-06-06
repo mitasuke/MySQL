@@ -67,3 +67,103 @@ mysql> desc tb1e;
 +-------+-------------+------+-----+---------+-------+
 
 
+カラムの並び順を変更する。
+mysql> alter table tb1c modify umare datetime first;
+
+mysql> desc tb1c;
++-------+--------------+------+-----+---------+-------+
+| Field | Type         | Null | Key | Default | Extra |
++-------+--------------+------+-----+---------+-------+
+| umare | datetime     | YES  |     | NULL    |       |　★カラムumareが、先頭に移動した
+| bang  | varchar(10)  | YES  |     | NULL    |       |
+| nama  | varchar(100) | YES  |     | NULL    |       |
+| tosi  | int(11)      | YES  |     | NULL    |       |
++-------+--------------+------+-----+---------+-------+
+
+
+カラム名とカラムのデータ型を同時に変更する。
+mysql> alter table テーブル名 change 変更前のカラム名 変更後のカラム名 変更後のデータ型;
+
+例：
+mysql> alter table tb1c change umare seinen date;
+
+mysql> desc tb1c;
++--------+--------------+------+-----+---------+-------+
+| Field  | Type         | Null | Key | Default | Extra |
++--------+--------------+------+-----+---------+-------+
+| seinen | date         | YES  |     | NULL    |       |　★このカラムの名前とデータ型が変わった
+| bang   | varchar(10)  | YES  |     | NULL    |       |
+| nama   | varchar(100) | YES  |     | NULL    |       |
+| tosi   | int(11)      | YES  |     | NULL    |       |
++--------+--------------+------+-----+---------+-------+
+
+
+テーブルからカラムを削除する。
+mysql> alter table テーブル名 drop 削除するカラム名;
+
+例：
+mysql> alter table tb1c drop seinen;
+
+mysql> desc tb1c;
++-------+--------------+------+-----+---------+-------+
+| Field | Type         | Null | Key | Default | Extra |
++-------+--------------+------+-----+---------+-------+
+| bang  | varchar(10)  | YES  |     | NULL    |       |　★さっきまで存在したカラムseinenが消えた
+| nama  | varchar(100) | YES  |     | NULL    |       |
+| tosi  | int(11)      | YES  |     | NULL    |       |
++-------+--------------+------+-----+---------+-------+
+
+
+主キー（PRIMARY KEY）を持つテーブルを作成する。
+mysql> create table テーブル名(カラム名 データ型 primary key,カラム名 データ型,･･････);
+
+例：
+mysql> create table itii(a int primary key,b varchar(10));
+
+mysql> desc itii;
++-------+-------------+------+-----+---------+-------+
+| Field | Type        | Null | Key | Default | Extra |
++-------+-------------+------+-----+---------+-------+
+| a     | int(11)     | NO   | PRI | NULL    |       |　★Keyが「PRI」になっていて、Nullが許可されない(NO)になっている。
+| b     | varchar(10) | YES  |     | NULL    |       |
++-------+-------------+------+-----+---------+-------+
+
+★上記の場合、主キーになったカラムaについては、重複する値は挿入できず、値が無い状態(Null)も許されない。
+　重複した値を入力しようとしたり、意図的にNullを入力しようとするとエラーになる。
+★主キーによって、一意にレコードを特定することができるようになる。
+
+
+一意キー（UNIQUE KEY）を持つテーブルを作成する。
+mysql> create table テーブル名(カラム名 データ型 unique,カラム名 データ型,･･････);
+
+例：
+mysql> create table uniq(a int unique,b varchar(10));
+
+mysql> desc uniq;
++-------+-------------+------+-----+---------+-------+
+| Field | Type        | Null | Key | Default | Extra |
++-------+-------------+------+-----+---------+-------+
+| a     | int(11)     | YES  | UNI | NULL    |       |　★Keyが「UNI」になっているが、Nullは許可する(YES)になっている
+| b     | varchar(10) | YES  |     | NULL    |       |
++-------+-------------+------+-----+---------+-------+
+
+★上記の場合、一意キーになったカラムaについては、重複する値を挿入することはできないが、Nullは許す状態になっている。
+
+
+連続番号機能付きカラムを持つテーブルを作成する。
+mysql> create table テーブル名(カラム名 データ型 auto_increment primary key,カラム名 データ型,･･････);
+
+★連続番号機能付きカラムのデータ型はINTなどの整数型にする必要がある。
+
+例：
+mysql> create table renzoku(a int auto_increment primary key,b varchar(10));
+
+mysql> desc renzoku;
++-------+-------------+------+-----+---------+----------------+
+| Field | Type        | Null | Key | Default | Extra          |
++-------+-------------+------+-----+---------+----------------+
+| a     | int(11)     | NO   | PRI | NULL    | auto_increment |　★連続番号機能が設定されている
+| b     | varchar(10) | YES  |     | NULL    |                |
++-------+-------------+------+-----+---------+----------------+
+
+

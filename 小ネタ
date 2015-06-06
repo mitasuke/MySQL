@@ -18,5 +18,5 @@ db1:localhost>prompt mysql>
 PROMPT set to 'mysql>'
 mysql>
 
-★「\d」で現在のデータベース名、「\h」でホスト名、「\u」でユーザ名の設定ができる。
+★「\d」で現在のデータベース名、「\h」でホスト名、「\u」でユーザ名が表示できる。
 

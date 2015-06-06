@@ -92,3 +92,54 @@ mysql> insert into テーブル名 (カラム名,カラム名,･･････
 mysql> insert into tb1 (bang,nama,tosi) values('A101','佐藤',40),('A102','高橋',28),('A103','中川',20),('A104','渡辺',23), ('A105','西沢',35);
 
 
+テーブルのデータを表示
+mysql> select カラム名,カラム名,･･････ from テーブル名;
+
+例：
+mysql> select * from tb1;
++------+--------+------+
+| bang | nama   | tosi |　★カラム名
++------+--------+------+
+| A101 | 佐藤   |   40 |　★レコード
+| A104 | 渡辺   |   23 |
+| A101 | 佐藤   |   40 |
+| A102 | 高橋   |   28 |
+| A103 | 中川   |   20 |
+| A104 | 渡辺   |   23 |
+| A105 | 西沢   |   35 |
++------+--------+------+
+
+★select文の カラム名 の部分を * にすると、全てのカラムを選択したことになる。（データ全表示）
+
+
+指定した値を出力する。
+mysql> select '出力したい文字列など';
+
+例：
+mysql> select 'test';
++------+
+| test |
++------+
+| test |
++------+
+
+★単純な関数の値や計算の結果を確認したい時に使える。
+
+
+テーブルを別名でコピー
+mysql> create table 新しいテーブル名 select * from コピー元のテーブル名;
+
+例：
+mysql> create table tb1a select * from tb1;
+mysql> create table tb1b select * from tb1;
+mysql> create table tb1c select * from tb1;
+mysql> show tables;
++---------------+
+| Tables_in_db1 |
++---------------+
+| tb1           |
+| tb1a          |
+| tb1b          |
+| tb1c          |
++---------------+
+

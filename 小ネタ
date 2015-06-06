@@ -1,1 +1,22 @@
+プロンプトの表示を変えてみる。
+mysql> prompt \d:\h>
+を実行すると、プロンプトが
+データベース名:ホスト名>
+となる。
+
+例：
+mysql> prompt \d:\h>
+PROMPT set to '\d:\h>'
+db1:localhost>
+
+元に戻すには
+prompt mysql>
+を実行する。
+
+例：
+db1:localhost>prompt mysql>
+PROMPT set to 'mysql>'
+mysql>
+
+★「\d」で現在のデータベース名、「\h」でホスト名、「\u」でユーザ名の設定ができる。
 

@@ -229,3 +229,48 @@ mysql> select * from tb1g;
 mysql> alter table tb1g modify nama varchar(10) default '氏名未入力';
 
 
+インデックスを作成する。
+mysql> create index インデックス名 on テーブル名(カラム名);
+
+例：
+mysql> create index my_ind on tb1g(bang);
+
+★カラムに値の重複が多い場合、インデックスを作成しない方が良い。
+★インデックスが設定されているテーブルを更新すると、インデックスの情報を再度作り直す処理が発生する。
+　よって、インデックスが存在すると、検索は早くなる可能性があるが、更新が遅くなる可能性もある。
+
+
+インデックスを表示する。
+mysql> show index from テーブル名;
+
+例：
+mysql> show index from tb1g \G　　★最後を ; でなく \G にすると、カラム毎の表示になって見やすい。（; にするともう読めない）
+*************************** 1. row ***************************
+        Table: tb1g
+   Non_unique: 1
+     Key_name: my_ind
+ Seq_in_index: 1
+  Column_name: bang
+    Collation: A
+  Cardinality: 1
+     Sub_part: NULL
+       Packed: NULL
+         Null: YES
+   Index_type: BTREE
+      Comment:
+Index_comment:
+
+★主キーを設定した場合は、自動的にインデックスも作成されている。
+
+
+インデックスを削除する。
+mysql> drop index インデックス名 on テーブル名;
+
+例：
+mysql> drop index my_ind on tb1g;
+
+mysql> show index from tb1g \G
+Empty set (0.00 sec)
+
+★主キーからはインデックスは消せないっぽい？
+

@@ -1,1 +1,135 @@
+既にあるテーブルのカラム構造とレコードをコピーして新たにテーブルを作成する。
+mysql> create table 新しいテーブル名 select * from 元になるテーブル名;
+
+例：
+mysql> create table tb1h select * from tb1;
+mysql> select * from tb1h;    ★中身を確認
+mysql> desc tb1h;    ★カラム構造が問題無いか確認
+
+★このコピーの場合、インデックスの設定が無視されるらしい。
+
+
+既にあるテーブルのカラム構造だけをコピーして新たにテーブルを作成する。
+mysql> create table 新しいテーブル名 like 元になるテーブル名;
+
+例：
+mysql> create table tb1i like tb1;
+
+mysql> desc tb1;
++-------+-------------+------+-----+---------+-------+
+| Field | Type        | Null | Key | Default | Extra |
++-------+-------------+------+-----+---------+-------+
+| bang  | varchar(10) | YES  |     | NULL    |       |
+| nama  | varchar(10) | YES  |     | NULL    |       |
+| tosi  | int(11)     | YES  |     | NULL    |       |
++-------+-------------+------+-----+---------+-------+
+
+mysql> desc tb1i;
++-------+-------------+------+-----+---------+-------+
+| Field | Type        | Null | Key | Default | Extra |
++-------+-------------+------+-----+---------+-------+
+| bang  | varchar(10) | YES  |     | NULL    |       |
+| nama  | varchar(10) | YES  |     | NULL    |       |
+| tosi  | int(11)     | YES  |     | NULL    |       |
++-------+-------------+------+-----+---------+-------+
+
+mysql> select * from tb1i;
+Empty set (0.00 sec)
+
+★カラム構造が全く同じテーブルができるが、中身は空っぽ。
+★AUTO_INCREMENT や PRIMARY KEY などのカラム属性もコピーされる。
+
+
+既にあるテーブルに、他のテーブルのレコードを丸ごとコピーする。
+mysql> insert into テーブル名 select * from 元になるテーブル名;
+
+例：
+mysql> insert into tb1i select * from tb1;
+mysql> select * from tb1i;　　★中身を確認
+
+
+他のテーブルの特定のカラムを選択して、データをコピーする。
+mysql> insert into tb1i(nama) select bang from tb1;
+
+★テーブルtb1iのカラムnamaに、テーブルtb1のカラムbangのデータだけをコピーしている。
+
+mysql> select * from tb1i;
++------+--------+------+
+| bang | nama   | tosi |
++------+--------+------+
+| A101 | 佐藤   |   40 |
+| A104 | 渡辺   |   23 |
+| A101 | 佐藤   |   40 |
+| A102 | 高橋   |   28 |
+| A103 | 中川   |   20 |
+| A104 | 渡辺   |   23 |
+| A105 | 西沢   |   35 |
+| NULL | A101   | NULL |　★nama にだけデータが挿入され、他のカラムには NULL が挿入される。
+| NULL | A104   | NULL |
+| NULL | A101   | NULL |　★データ型が異なるカラムからのコピーは失敗する可能性もある。（今回はnamaとbangは同じvarchar(10)）
+| NULL | A102   | NULL |
+| NULL | A103   | NULL |
+| NULL | A104   | NULL |
+| NULL | A105   | NULL |
++------+--------+------+
+
+
+テーブルを削除する。
+mysql> drop table テーブル名;
+
+例：
+mysql> drop table tb1a;
+
+mysql> show tables;　　★テーブルが存在しないことを確認
+
+
+指定のテーブルがある場合は削除して、テーブルが存在しない場合は何もしない。
+mysql> drop table if exists テーブル名;
+
+例：
+mysql> drop table tb1a;
+ERROR 1051 (42S02): Unknown table 'tb1a'　　★存在しないテーブルを削除(drop)しようとするとエラーが返ってくる
+
+mysql> drop table if exists tb1a;
+Query OK, 0 rows affected, 1 warning (0.00 sec)　　★if exists をつけると、テーブルが存在しなくてもエラーは返ってこない
+
+mysql> drop table if exists syokiti_renzoku;
+Query OK, 0 rows affected (0.01 sec)　　★対象テーブルが存在する場合は普通に削除する
+
+★if exists をつけることにより、エラーを出さないで済むのが良い。
+
+
+データベースを削除する。
+mysql> drop database データベース名;
+
+例：
+mysql> drop database db0;
+mysql> show databases;　　★データベースが消えていることを確認
+
+★データベースを消すと、当然ながらテーブルも含めて全て消えるので、よく確認してから実行すること。
+
+
+テーブル自体は削除せず、テーブルに保管されているレコード(データ)だけを削除する。
+mysql> delete from テーブル名;
+
+例：
+mysql> select * from tb1h;
++------+--------+------+
+| bang | nama   | tosi |
++------+--------+------+
+| A101 | 佐藤   |   40 |
+| A104 | 渡辺   |   23 |
+| A101 | 佐藤   |   40 |
+| A102 | 高橋   |   28 |
+| A103 | 中川   |   20 |
+| A104 | 渡辺   |   23 |
+| A105 | 西沢   |   35 |
++------+--------+------+
+
+mysql> delete from tb1h;
+Query OK, 7 rows affected (0.00 sec)
+
+mysql> select * from tb1h;
+Empty set (0.00 sec)
+
 

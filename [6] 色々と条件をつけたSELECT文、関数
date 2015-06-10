@@ -677,3 +677,34 @@ mysql> select bang,sum(uria) as 売上合計 from tb group by bang having sum(ur
 +------+--------------+
 
 
+カラムuriaが50以上のレコードだけを抽出して、それを対象にしてカラムbangごとの平均値を出す。
+mysql> select bang,avg(uria) from tb where uria>=50 group by bang;
++------+-----------+
+| bang | avg(uria) |
++------+-----------+
+| A101 |  242.0000 |
+| A102 |  129.5000 |
+| A103 |  101.0000 |
+| A104 |  137.0000 |
+| A107 |   87.0000 |
++------+-----------+
+
+★こちらは「抽出してからグループ化する」パターン、HAVING句を使うのは「グループ化してから抽出する」パターン！
+
+
+グループ化してから並び替える方法：
+bangごとのuriaの平均値を降順(多いものから順番)に表示する。
+mysql> select bang,avg(uria) from tb group by bang order by avg(uria) desc;
++------+-----------+
+| bang | avg(uria) |
++------+-----------+
+| A101 |  242.0000 |
+| A104 |  137.0000 |
+| A102 |  129.5000 |
+| A107 |   87.0000 |
+| A103 |   43.3333 |
++------+-----------+
+
+★最初に GROUP BY 、次に ORDER BY を記述する必要がある。
+
+

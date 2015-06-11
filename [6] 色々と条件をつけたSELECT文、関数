@@ -707,4 +707,5 @@ mysql> select bang,avg(uria) from tb group by bang order by avg(uria) desc;
 
 ★最初に GROUP BY 、次に ORDER BY を記述する必要がある。
 
+順番は「WHERE 条件」→「GROUP BY ～ (HAVING ～)」→「ORDER BY ～ (DESC)」
 

@@ -1,1 +1,65 @@
+サブクエリ＝副問い合わせ
+「クエリを実行して取り出したデータを使って、更にクエリを発行する」という2段階の処理ができる。
+
+uriaが最大であるレコードのみ抽出する。
+mysql> select * from tb where uria in (select max(uria) from tb);
++------+------+------+
+| bang | uria | tuki |
++------+------+------+
+| A101 |  300 |    5 |
++------+------+------+
+
+★「select max(uria) from tb」の部分がサブクエリ。
+★「select * from tb where uria=max(uria);」を実行してもエラーになるので注意。
+★MAX(カラム名)　でカラムの最大値を求めることができる。（MAX関数）
+
+
+カラムtosiの平均値以上のtosiの値を持つレコードのみを抽出する。
+mysql> select * from tb1 where tosi >= (select avg(tosi) from tb1);
++------+--------+------+
+| bang | nama   | tosi |
++------+--------+------+
+| A101 | 佐藤   |   40 |
+| A105 | 西沢   |   35 |
++------+--------+------+
+
+
+カラムを返すサブクエリ
+SELECT 表示するカラム名 FROM テーブル名 WHERE カラム名 IN(カラム抽出のためのselectによるサブクエリ);
+
+例：
+mysql> select * from tb1 where bang in (select bang from tb where uria>=200);
++------+--------+------+
+| bang | nama   | tosi |
++------+--------+------+
+| A101 | 佐藤   |   40 |　★uriaが200以上の社員を表示
+| A102 | 高橋   |   28 |
++------+--------+------+
+
+
+★「WHERE ～ IN(～～)」は特定のカラムを返すサブクエリ。
+　特定のカラムを返すのではなく、「対象となるレコードが存在する」という情報を返すのが EXISTS
+
+テーブルtbとtb1の両方に(bangが)存在するレコードについて、テーブルtb1から抽出する。
+mysql> select * from tb1 where exists (select * from tb where tb.bang=tb1.bang);
++------+--------+------+
+| bang | nama   | tosi |
++------+--------+------+
+| A101 | 佐藤   |   40 |
+| A102 | 高橋   |   28 |
+| A103 | 中川   |   20 |
+| A104 | 渡辺   |   23 |
++------+--------+------+
+
+↑ tb1には「bang=A105,nama=西沢」というレコードも存在するが、tbには存在しないので、この結果には表示されない。
+　サブクエリの時点で bang=A105 のレコードは除かれている。
+
+
+テーブルtbにbangが存在しないレコードについて、テーブルtb1から抽出する。
+mysql> select * from tb1 where not exists (select * from tb where tb.bang=tb1.bang);
++------+--------+------+
+| bang | nama   | tosi |
++------+--------+------+
+| A105 | 西沢   |   35 |
++------+--------+------+
 

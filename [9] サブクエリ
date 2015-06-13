@@ -63,3 +63,72 @@ mysql> select * from tb1 where not exists (select * from tb where tb.bang=tb1.ba
 | A105 | 西沢   |   35 |
 +------+--------+------+
 
+
+テーブルtbの売上(uria)に順位をつけて表示させる。
+
+１．tbと同じ構造を持つテーブルを作成しておく。
+mysql> create table tb_zyun like tb;
+
+２．テーブルtb_zyunに、連続番号機能（プライマリキー）を持つカラムzyunを追加する。
+mysql> alter table tb_zyun add zyun int auto_increment primary key;
+
+３．サブクエリを使って、tbをuriaの降順に並び替えて、tb_zyunに挿入する。
+mysql> insert into tb_zyun (bang,uria,tuki)
+    -> (select bang,uria,tuki from tb order by uria desc);
+
+mysql> select * from tb_zyun;
++------+------+------+------+
+| bang | uria | tuki | zyun |
++------+------+------+------+
+| A101 |  300 |    5 |    1 |　★連続番号機能で振られた数字が順位になっている
+| A102 |  205 |    6 |    2 |
+| A101 |  184 |    4 |    3 |
+| A104 |  181 |    4 |    4 |
+| A103 |  101 |    4 |    5 |
+| A104 |   93 |    5 |    6 |
+| A107 |   87 |    6 |    7 |
+| A102 |   54 |    5 |    8 |
+| A103 |   17 |    5 |    9 |
+| A103 |   12 |    6 |   10 |
++------+------+------+------+
+
+
+テーブルtbでuriaの少ないものから順位を付けて、1番から順にbang,uria,順位を表示させる。
+mysql> create table uria_jun like tb;
+mysql> alter table uria_jun add jun int auto_increment primary key;
+mysql> insert into uria_jun (bang,uria) (select bang,uria from tb order by uria);
+mysql> select * from uria_jun;
++------+------+------+-----+
+| bang | uria | tuki | jun |
++------+------+------+-----+
+| A103 |   12 | NULL |   1 |
+| A103 |   17 | NULL |   2 |
+| A102 |   54 | NULL |   3 |
+| A107 |   87 | NULL |   4 |
+| A104 |   93 | NULL |   5 |
+| A103 |  101 | NULL |   6 |
+| A104 |  181 | NULL |   7 |
+| A101 |  184 | NULL |   8 |
+| A102 |  205 | NULL |   9 |
+| A101 |  300 | NULL |  10 |
++------+------+------+-----+
+mysql> alter table uria_jun drop tuki;
+
+
+テーブルtb1に存在するレコードのみ、tbから抽出する。
+mysql> select * from tb where exists (select * from tb1 where tb.bang=tb1.bang);
++------+------+------+
+| bang | uria | tuki |
++------+------+------+
+| A103 |  101 |    4 |
+| A102 |   54 |    5 |
+| A104 |  181 |    4 |
+| A101 |  184 |    4 |
+| A103 |   17 |    5 |
+| A101 |  300 |    5 |
+| A102 |  205 |    6 |
+| A104 |   93 |    5 |
+| A103 |   12 |    6 |
++------+------+------+
+
+

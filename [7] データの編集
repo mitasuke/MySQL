@@ -64,3 +64,56 @@ mysql> select * from tb;
 +------+------+------+--------------+
 
 
+特定のレコードだけをコピーして新たなテーブルを作る。
+mysql> create table tb_a101 select * from tb where bang='A101';
+
+mysql> select * from tb_a101;
++------+------+------+
+| bang | uria | tuki |
++------+------+------+
+| A101 |  184 |    4 |　★bangがA101のレコードだけ取り出して、新たなテーブルtb_a101を作成している。
+| A101 |  300 |    5 |
++------+------+------+
+
+既に存在するテーブルに、別のテーブルから特定のレコードだけを取り出して挿入する。
+mysql> insert into tb_a101 select * from tb where bang like 'A102';
+
+mysql> select * from tb_a101;
++------+------+------+
+| bang | uria | tuki |
++------+------+------+
+| A101 |  184 |    4 |
+| A101 |  300 |    5 |
+| A102 |   54 |    5 |
+| A102 |  205 |    6 |
++------+------+------+
+
+
+uriaが最も高いレコードを除いて、uriaが2～5番目に高いレコードのみを集めたテーブルを作成する。
+mysql> create table tb_2to5 select * from tb order by uria desc limit 4 offset 1;
+
+mysql> select * from tb_2to5;
++------+------+------+
+| bang | uria | tuki |
++------+------+------+
+| A102 |  205 |    6 |　★offset は 2 ではなく 1 なので注意（何度もミスった）
+| A101 |  184 |    4 |
+| A104 |  181 |    4 |
+| A103 |  101 |    4 |
++------+------+------+
+
+
+条件に一致するレコードを削除する。
+DELETE FROM テーブル名 WHERE 条件；
+
+例：
+mysql> delete from tb1k where tosi<30;
+mysql> select * from tb1k;
++------+--------+------+
+| bang | nama   | tosi |
++------+--------+------+
+| A101 | 佐藤   |   40 |　★tosi が 30未満のレコードを削除した。
+| A105 | 西沢   |   35 |
++------+--------+------+
+
+

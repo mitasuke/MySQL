@@ -1,1 +1,52 @@
+2つのテーブルのレコードを集めて表示する。
+select カラム名 from テーブル名 union select カラム名 from テーブル名;
+
+例：
+mysql> select * from tb1 union select * from tb2;
++------+--------+------+
+| bang | nama   | tosi |
++------+--------+------+
+| A101 | 佐藤   |   40 |
+| A102 | 高橋   |   28 |
+| A103 | 中川   |   20 |
+| A104 | 渡辺   |   23 |
+| A105 | 西沢   |   35 |
+| A106 | 中村   |   26 |
+| A107 | 田中   |   24 |
+| A108 | 鈴木   |   23 |
+| A109 | 村井   |   25 |
+| A110 | 吉田   |   27 |
++------+--------+------+
+
+それぞれのSELECT文を()で囲んでも結果は同じ。 ()で囲んだ方が見やすいかも。
+mysql> (select * from tb1) union (select * from tb2);
+
+★3つ以上のテーブルであっても、UNION でどんどんくっつけることができる。
+
+
+テーブルtbでuriaが200以上であるbangと、テーブルtb1でtosiが35以上であるbangを抜き出して表示する。
+mysql> select bang from tb where uria>=200 union select bang from tb1 where tosi>=35;
++------+
+| bang |
++------+
+| A101 |
+| A102 |
+| A105 |
++------+
+
+★どちらのテーブルにも入っていて、かつ条件を満たすA101は2つ表示されるはずだが、自動的に「重複しているデータは省く」
+　という処理がされているため、1つしか表示されない。
+　大量のデータが入っているテーブルで「重複は省く」処理を行うと待ち時間が増えるため、重複を省かない方法もある。
+
+重複を省かないで上記のbangを表示させる。（UNION ALL）
+mysql> select bang from tb where uria>=200 union all select bang from tb1 where tosi>=35;
++------+
+| bang |
++------+
+| A101 |
+| A102 |
+| A101 |
+| A105 |
++------+
+
 

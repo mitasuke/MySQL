@@ -9,9 +9,4 @@ MySQLの勉強用
 
 Amazon Linux AMI 2015.03 
 
-mysql> select version();
-+-----------+
-| version() |
-+-----------+
-| 5.5.42    |
-+-----------+
+MySQL 5.5.42

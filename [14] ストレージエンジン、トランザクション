@@ -1,1 +1,21 @@
+ストレージエンジンとは・・・
+MySQLの機能を大きく2つに分けると、
+１．「接続する」「SQL文の内容を事前に調べる」
+２．「実際の検索やファイル操作などを行う」→ この機能をストレージエンジンという
+
+MySQL5.5以降でデフォルトで使用するのは InnoDB(イノデービー) というストレージエンジン
+
+テーブルごとに使うストレージエンジンを指定することもできる。
+最適なストレージエンジンを選択するとより良いが、難しいのでパス。
+
+★テーブル作成時に使用されたストレージエンジンを確認する。
+mysql> show create table tb \G
+*************************** 1. row ***************************
+       Table: tb
+Create Table: CREATE TABLE `tb` (
+  `bang` varchar(10) DEFAULT NULL,
+  `uria` int(11) DEFAULT NULL,
+  `tuki` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8　　← 「ENGINE=InnoDB」とあるので、InnoDBが使われていることがわかる
+
 

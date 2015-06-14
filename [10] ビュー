@@ -1,1 +1,86 @@
+ビューとは・・・
+ビューはテーブルとは異なり、実際のデータそのものは存在しない。
+「どのテーブルのどのカラムをどのような条件で抽出するか」という情報である。
+ビューの値を更新すれば元のテーブルのデータも更新される。
+元のテーブルが更新されれば、ビューの値も更新される。
+
+
+ビューの作成
+CREATE VIEW ビューの名前 AS SELECT カラム名 FROM テーブル名 WHERE 条件;
+
+★WHERE の部分は ORDER BY、LIMIT、JOIN でも良い。　レコードを抽出する時の条件を記載する。
+　何かしらの条件でカラムを集めて、仮想的なテーブルを作るイメージ。
+　
+例：
+mysql> create view v1 as select nama,tosi from tb1l;　　（namaとtosiだけ取り出してビューを作成している）
+
+mysql> select * from v1;
++--------+------+
+| nama   | tosi |
++--------+------+
+| 佐藤   |   40 |
+| 高橋   |   28 |
+| 中川   |   20 |
+| 渡辺   |   23 |
+| 西沢   |   35 |
++--------+------+
+
+ここで、以下のようにビューを更新すると、ビューv1とテーブルtb1l(ビューの元になっているテーブル)の両方が更新される。
+mysql> update v1 set nama='主任・佐藤' where nama='佐藤';
+
+
+複数のテーブルからデータを抽出してビューを作成する。
+
+例：
+uriaが100以上であるbang,nama,uriaを表示するビューを作成する。
+mysql> create view v2 as select tb.bang,tb1l.nama,tb.uria from tb
+    -> join tb1l using(bang) where tb.uria>=100;
+
+mysql> select * from v2;
++------+-----------------+------+
+| bang | nama            | uria |
++------+-----------------+------+
+| A103 | 中川            |  101 |
+| A104 | 渡辺            |  181 |
+| A101 | 主任・佐藤      |  184 |
+| A101 | 主任・佐藤      |  300 |
+| A102 | 高橋            |  205 |
++------+-----------------+------+
+
+
+元のテーブルが更新されて、あるレコードがビューの抽出条件を満たすと、ビューにも表示される。
+
+例：
+mysql> update tb set uria=777 where bang='A102' and uria=54;
+
+mysql> select * from v2;
++------+-----------------+------+
+| bang | nama            | uria |
++------+-----------------+------+
+| A103 | 中川            |  101 |
+| A102 | 高橋            |  777 |　★uria=54 から uria=777 に変更して、uria>=100 を満たしたので、表示されるようになった。
+| A104 | 渡辺            |  181 |
+| A101 | 主任・佐藤      |  184 |
+| A101 | 主任・佐藤      |  300 |
+| A102 | 高橋            |  205 |
++------+-----------------+------+
+
+
+ビューの存在を確認する方法はテーブルと同様。
+SHOW TABLES;
+
+カラム構造の確認方法もテーブルと同様。
+DESC ビュー名;
+
+ビューの詳細情報を表示する。
+SHOW CREATE VIEW ビュー名;
+
+例：
+mysql> show create view v2 \G
+*************************** 1. row ***************************
+                View: v2
+         Create View: CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v2` AS select `tb`.`bang` AS `bang`,`tb1l`.`nama` AS `nama`,`tb`.`uria` AS `uria` from (`tb` join `tb1l` on((`tb`.`bang` = `tb1l`.`bang`))) where (`tb`.`uria` >= 100)
+character_set_client: utf8
+collation_connection: utf8_general_ci
+
 

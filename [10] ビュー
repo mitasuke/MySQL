@@ -4,6 +4,9 @@
 ビューの値を更新すれば元のテーブルのデータも更新される。
 元のテーブルが更新されれば、ビューの値も更新される。
 
+CREATE TABLE で作成されたテーブルを実ひ実表と呼ぶ。
+実表はハードディスクなどに実際にデータが書き込まれるが、ビューは実体が無い。
+
 
 ビューの作成
 CREATE VIEW ビューの名前 AS SELECT カラム名 FROM テーブル名 WHERE 条件;
@@ -82,5 +85,127 @@ mysql> show create view v2 \G
          Create View: CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v2` AS select `tb`.`bang` AS `bang`,`tb1l`.`nama` AS `nama`,`tb`.`uria` AS `uria` from (`tb` join `tb1l` on((`tb`.`bang` = `tb1l`.`bang`))) where (`tb`.`uria` >= 100)
 character_set_client: utf8
 collation_connection: utf8_general_ci
+
+
+単純に1つのテーブルからカラムを抜き出したビューであれば、INSERTやUPDATEもできる。
+ただし、元のテーブルに存在してビューには存在しないカラムについては、元のテーブルの該当のカラムに NULL が挿入される。
+
+
+★ビューに「抽出条件に合わないデータ」を挿入したらどうなるの？
+
+uriaが100以上のレコードだけ取り出してビューを作って・・・
+mysql> create view v3 as select bang,uria from tb where uria>=100;
+
+そのビューに「uriaが100未満のデータ」を挿入してみると、「Query OK」が返ってきた。
+mysql> insert into v3 values('てすと',50);
+Query OK, 1 row affected (0.01 sec)
+
+ビューを確認しても、今挿入したデータは表示されない。
+mysql> select * from v3;
++------+------+
+| bang | uria |
++------+------+
+| A103 |  101 |
+| A104 |  181 |
+| A101 |  184 |
+| A101 |  300 |
+| A102 |  205 |
++------+------+
+
+元になっているテーブルtbに追加されてた。
+mysql> select * from tb;
++-----------+------+------+
+| bang      | uria | tuki |
++-----------+------+------+
+| A103      |  101 |    4 |
+| A102      |   54 |    5 |
+| A104      |  181 |    4 |
+| A101      |  184 |    4 |
+| A103      |   17 |    5 |
+| A101      |  300 |    5 |
+| A102      |  205 |    6 |
+| A104      |   93 |    5 |
+| A103      |   12 |    6 |
+| A107      |   87 |    6 |
+| てすと    |   50 | NULL |
++-----------+------+------+
+
+
+★ビューの条件に合わないデータを挿入しようとするとエラーが出るようにする。
+　ビューを作る時に WITH CHECK OPTION を付けるだけ。
+
+例：
+ビュー作成時、SQL文の最後に with check option を付ける。
+mysql> create view v4 as select bang,uria from tb where uria>100 with check option;
+
+ビューの条件に反するデータを追加しようとするとエラーが出てはじかれる。
+mysql> insert into v4 values('てすと',50);
+ERROR 1369 (HY000): CHECK OPTION failed 'db1.v4'
+
+
+★既に存在するビューを上書きする場合、CREATE文に OR REPLACE をつければ良い。
+　「その名前のビューが存在するかわからないが、とにかく新たにビューを作成(上書き)したい」時に便利。
+
+例：
+既に存在するビューv1を上書きする。（v1を削除して、新たにv1を作る）
+mysql> create or replace view v1 as select now();
+
+確かに中身が変わっている。（now()の値を返す）
+mysql> select * from v1;
++---------------------+
+| now()               |
++---------------------+
+| 2015-06-14 05:31:10 |
++---------------------+
+
+
+★ビューの定義を変更する。
+ALTER VIEW ビュー名 AS SELECT カラム名 FROM テーブル名;
+
+例：
+now()しか返さないビューv1を元に戻す。
+mysql> alter view v1 as select nama,tosi from tb1;
+
+mysql> select * from v1;
++--------+------+
+| nama   | tosi |
++--------+------+
+| 佐藤   |   40 |
+| 高橋   |   28 |
+| 中川   |   20 |
+| 渡辺   |   23 |
+| 西沢   |   35 |
++--------+------+
+
+
+★ビューを削除する。
+DROP VIEW ビュー名;
+
+ビューが存在しない場合、単に DROP VIEW を実行するとエラーになる。
+mysql> drop view v5;
+ERROR 1051 (42S02): Unknown table 'v5'
+
+ビューが存在する場合は削除して、対象のビューが存在しない場合は何もしない(エラーも返さない)ようにするには、
+IF EXISTS を付けて実行する。
+DROP VIEW IF EXISTS ビュー名;
+
+例：
+mysql> drop view if exists v5;
+Query OK, 0 rows affected, 1 warning (0.00 sec)
+
+
+練習問題：
+mysql> create view v_uria as select bang,avg(uria) from tb
+    -> where uria>=50 group by bang
+    -> having avg(uria)>=120 order by avg(uria) desc;
+
+mysql> select * from v_uria;
++------+-----------+
+| bang | avg(uria) |
++------+-----------+
+| A101 |  242.0000 |
+| A104 |  137.0000 |
+| A102 |  129.5000 |
++------+-----------+
 
 

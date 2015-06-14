@@ -19,3 +19,88 @@ Create Table: CREATE TABLE `tb` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8　　← 「ENGINE=InnoDB」とあるので、InnoDBが使われていることがわかる
 
 
+★テーブルのストレージエンジンを変更する。
+ALTER TABLE テーブル名 ENGINE=ストレージエンジン名;
+
+例：
+mysql> alter table tb1b engine=myisam;
+Query OK, 8 rows affected (0.01 sec)
+Records: 8  Duplicates: 0  Warnings: 0
+
+mysql> show create table tb1b \G
+*************************** 1. row ***************************
+       Table: tb1b
+Create Table: CREATE TABLE `tb1b` (
+  `bang` varchar(10) DEFAULT NULL,
+  `nama` varchar(10) DEFAULT NULL,
+  `tosi` int(11) DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=utf8　　← ENGINE=MyISAM に変更された
+
+
+★トランザクションとは・・・
+分割できない複数の処理（入出金処理など）をまとめて扱う機能のこと。
+トランザクションを実行して、結果をデータベースに反映させることをコミットと呼ぶ。
+データベースに反映させずに元に戻すことをロールバックと呼ぶ。
+
+データベースでは「トランザクションを使わない限り、1度データを変更したら元に戻せない」と考えておく。
+
+トランザクションはストレージエンジンが MyISAM だと使えない。　InnoDBに変えれば良い。
+
+
+★トランザクション関連の操作
+
+・トランザクションの開始
+START TRANSACTION;
+
+・ロールバックして元に戻す。
+ROLLBACK;
+
+・結果をデータベースに反映する。
+COMMIT;
+
+
+★トランザクションを実行して、結果は反映させないパターン。
+
+トランザクション開始の合図
+mysql> start transaction;
+Query OK, 0 rows affected (0.00 sec)
+　　→　「Query OK」が表示されない場合、トランザクションが働いていないことになるので、
+　　　 データを消したりすると取り返しがつかなくなる。　必ず「Query OK」が表示されることを確認する！
+
+テーブルtbのレコードを全て消す！
+mysql> delete from tb;
+
+tbが空っぽになりました。
+mysql> select * from tb;
+Empty set (0.00 sec)
+
+レコード削除の処理を無かったことにする。
+mysql> rollback;
+Query OK, 0 rows affected (0.01 sec)
+
+tbが元に戻っていることを確認する。
+mysql> select * from tb;
++------+------+------+
+| bang | uria | tuki |
++------+------+------+
+| A103 |  101 |    4 |
+| A102 |   54 |    5 |
+| A104 |  181 |    4 |
+| A101 |  184 |    4 |
+| A103 |   17 |    5 |
+| A101 |  300 |    5 |
+| A102 |  205 |    6 |
+| A104 |   93 |    5 |
+| A103 |   12 |    6 |
+| A107 |   87 |    6 |
++------+------+------+
+
+トランザクションは ROLLBACK; を実行した時点で確定しているため、
+もう1度トランザクションを実行する時は START TRANSACTION; を実行する必要がある。
+ROLLBACK; ではなく COMMIT; を実行すると、tbのデータは全て消えた状態で確定する。
+
+deleteの処理を実行した時点で、テーブルの一部機能にロックがかかっており、
+別セッションから INSERT などの処理が実行できなくなっている。
+（トランザクションが ROLLBACK; か COMMIT; されるまでは、別のセッションから別の処理を(ほとんど)実行することはできない）
+
+

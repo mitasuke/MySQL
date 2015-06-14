@@ -1,1 +1,132 @@
+ストアドプロシージャとは・・・
+いくつものSQL文を１つにまとめて、それを「CALL ～」というコマンドだけで実行できるようにしたもの。
+あらかじめ用意した多くのコマンドを自動で実行できるので、作業が効率的にできる。
+ただし、自動でコマンドが実行されるので、事前によく検証して実行する必要がある。
+
+
+★ストアドプロシージャの作成
+CREATE PROCEDURE ストアドプロシージャ名() BEGIN SQL文; SQL文; END
+
+デリミタが ; である場合、ストアドプロシージャの中の SQL文; の部分で、MySQLモニタが「デリミタがある」と認識してしまい、
+そこまでの処理を実行してしまう。（たぶん失敗する）
+つまり、CREATE PROCEDURE が正常に実行できない。
+
+そこで、ストアドプロシージャを作成する前に、デリミタを ; から変えておく必要がある。
+一般的には // が使われる。
+ストアドプロシージャが作成し終わったら、「DELIMITER ;」で元に戻しておく。
+
+例：
+デリミタを // に変更する。
+DELIMITER //
+
+
+★ストアドプロシージャを作成する。
+
+まずデリミタを変更しておいて・・・。
+mysql> delimiter //
+
+ストアドプロシージャ pr1 を作成する。
+mysql> create procedure pr1() begin
+    -> select * from tb;
+    -> select * from tb1;
+    -> end //
+
+デリミタを ; に戻しておく。
+mysql> delimiter ;
+
+
+★ストアドプロシージャを実行する。
+CALL ストアドプロシージャ名;
+
+例：
+mysql> call pr1;
+（長いので出力は省略）
+
+
+★ストアドプロシージャでの引数の記述方法
+PROCEDURE ストアドプロシージャ名(引数名 データ型);
+
+例：
+指定した値以上のレコードだけを表示するストアドプロシージャを作成する。
+
+まずデリミタを変えて。
+mysql> delimiter //
+
+引数付きのストアドプロシージャを作る。（引数はINT型のd）
+mysql> create procedure pr2(d int) begin
+    -> select * from tb where uria>=d;
+    -> end //
+
+デリミタを元に戻して。
+mysql> delimiter ;
+
+引数に200を指定してプロシージャを実行すると、uriaが200以上であるレコードが表示されました。
+mysql> call pr2(200);
++------+------+------+
+| bang | uria | tuki |
++------+------+------+
+| A101 |  300 |    5 |
+| A102 |  205 |    6 |
++------+------+------+
+
+引数無しで実行するとエラーになる。
+mysql> call pr2();
+ERROR 1318 (42000): Incorrect number of arguments for PROCEDURE db1.pr2; expected 1, got 0
+
+
+★存在するストアドプロシージャの一覧を表示（\G にしないと見づらい）
+SHOW PROCEDURE STATUS;
+
+例：
+mysql> show procedure status \G
+*************************** 1. row ***************************
+                  Db: db1
+                Name: pr1
+                Type: PROCEDURE
+             Definer: root@localhost
+            Modified: 2015-06-14 07:36:51
+             Created: 2015-06-14 07:36:51
+       Security_type: DEFINER
+             Comment:
+character_set_client: utf8
+collation_connection: utf8_general_ci
+  Database Collation: utf8_general_ci
+*************************** 2. row ***************************
+                  Db: db1
+                Name: pr2
+                Type: PROCEDURE
+             Definer: root@localhost
+            Modified: 2015-06-14 07:45:39
+             Created: 2015-06-14 07:45:39
+       Security_type: DEFINER
+             Comment:
+character_set_client: utf8
+collation_connection: utf8_general_ci
+  Database Collation: utf8_general_ci
+
+
+★ストアドプロシージャの内容を表示する。（\G にしないと見づらい）
+SHOW CREATE PROCEDURE スロアドプロシージャ名;
+
+例：
+mysql> show create procedure pr1 \G
+*************************** 1. row ***************************
+           Procedure: pr1
+            sql_mode:
+    Create Procedure: CREATE DEFINER=`root`@`localhost` PROCEDURE `pr1`()
+begin
+select * from tb;
+select * from tb1;
+end
+character_set_client: utf8
+collation_connection: utf8_general_ci
+Database Collation: utf8_general_ci
+
+
+★ストアドプロシージャを削除する。
+DROP PROCEDURE ストアドプロシージャ名;
+
+例：
+mysql> drop procedure pr1;
+
 

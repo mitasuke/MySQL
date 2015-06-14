@@ -122,3 +122,46 @@ mysql> drop function fu1;
 ERROR 1305 (42000): FUNCTION db1.fu1 does not exist
 
 
+例：
+テーブルtbで、tukiの値(4,5,6)を指定するとその月のuriaの合計値を返すストアドファンクション
+
+mysql> delimiter //
+
+mysql> create function f_uria(t int) returns int
+    -> begin
+    -> declare u int;
+    -> select sum(uria) into u from tb where tuki=t;
+    -> return u;
+    -> end //
+
+mysql> delimiter ;
+
+mysql> select f_uria(4);
++-----------+
+| f_uria(4) |
++-----------+
+|       466 |
++-----------+
+
+mysql> select f_uria(5);
++-----------+
+| f_uria(5) |
++-----------+
+|       464 |
++-----------+
+
+mysql> select f_uria(6);
++-----------+
+| f_uria(6) |
++-----------+
+|       304 |
++-----------+
+
+mysql> select f_uria(7);
++-----------+
+| f_uria(7) |
++-----------+
+|      NULL |
++-----------+
+
+

@@ -1,1 +1,113 @@
+CSVなどのテキストファイルからデータを読み込む（インポートする）ことができる。
+
+★ファイルからデータを読み込む。
+LOAD DATA INFILE 'ファイル名' INTO TABLE テーブル名 オプション;
+
+CSV形式以外のファイルであっても、読み込むことはできる。
+オプションで「データ間の区切り文字」「改行文字」「何行目から読み込むか」などを指定する。
+
+
+★LOAD DATA INFILE コマンドでデータ形式を指定するオプション
+
+・区切り文字の指定
+FIELDS TERMINATED BY 区切り文字　（デフォルトは'\t' ←タブ）
+
+・改行文字の指定
+LINES TERMINATED BY 改行文字　（デフォルトでは'\n' ←改行）
+
+・何行目から読み込むか
+IGNORE 最初にスキップする行 LINES　（デフォルトは0）
+
+
+例：
+/home/ec2-user/test.csv ファイルを作成しておく。
+内容は以下の通り。
+----------------
+N551,佐々木,37
+N552,伊藤,41
+N553,斎藤,31
+N554,井上,43
+N555,阿部,31
+----------------
+
+MySQLにログインして、test.csvをインポートする。
+mysql> load data infile 'test.csv' into table tb1n fields terminated by ',';
+ERROR 13 (HY000): Can't get stat of '/home/ec2-user/test.csv' (Errcode: 13)
+
+エラーになって失敗したので調べたら、以下のような情報を発見。
+-------------------------------------------------------------------
+参考：http://mlog.euqset.org/archives/ml@mysql.gr.jp/14306.html
+
+LOAD DATA INFILEはMySQLのサーバ側にファイルを読み込ませる文です。
+通常MySQLサーバはmysqlユーザで動いていますから、
+このケースではサーバマシンの /home/mysql/MySQL/TCeuc.csv あたりを
+読もうとして失敗してしまうことになります。
+一方、LOAD DATA LOCAL INFILEという文を使うと、
+MySQLのクライアント側にファイルを読み込ませることができます。
+-------------------------------------------------------------------
+
+という訳なので、localをつけて実行してみる。
+mysql> load data local infile '/home/ec2-user/test.csv' into table tb1n fields terminated by ',';
+Query OK, 5 rows affected (0.00 sec)
+Records: 5  Deleted: 0  Skipped: 0  Warnings: 0
+
+うまく処理したようなので、テーブルtb1nを確認すると、csvファイルの内容が挿入されていた。
+mysql> select * from tb1n;
++------+-----------+------+
+| bang | nama      | tosi |
++------+-----------+------+
+| A101 | 佐藤      |   40 |
+| A102 | 高橋      |   28 |
+| A103 | 中川      |   20 |
+| A104 | 渡辺      |   23 |
+| A105 | 西沢      |   35 |
+| N551 | 佐々木    |   37 |
+| N552 | 伊藤      |   41 |
+| N553 | 斎藤      |   31 |
+| N554 | 井上      |   43 |
+| N555 | 阿部      |   31 |
++------+-----------+------+
+
+ここでちょっと確認。
+mysql> load data infile 'test.csv' into table tb1n fields terminated by ',';
+ERROR 13 (HY000): Can't get stat of '/var/lib/mysql/db1/test.csv' (Errcode: 2)
+
+フルパスでなくファイル名だけ指定すると、上記のようなエラーになるので、
+/var/lib/mysql/db1 の配下に test2.csv ファイルを作成してみる。
+内容は以下の通り。
+----------------
+A777,太郎,38
+----------------
+
+MySQLにログインして、ファイル名だけを指定してインポートしてみる。
+mysql> load data infile 'test2.csv' into table tb1n fields terminated by ',';
+Query OK, 1 row affected (0.00 sec)
+
+つまり、
+・適当な場所にインポート用のファイルを作って「load data local infile～」でフルパス指定でインポートする。
+・/var/lib/mysql/データベース名 配下にインポート用のファイルを作って「load data infile～」でファイル名指定でインポートする。
+のどちらか？
+
+
+★インポートとは逆に、テーブルにあるデータをCSVファイルなどのテキストファイルとして取り出すこともできる。
+　これをエクスポートという。
+　別のデータベースで使用したり、バックアップとしても使える。
+
+★データをテキストファイルにエクスポートする。
+SELECT * INTO OUTFILE 'ファイル名' オプション FROM テーブル名;
+
+↑ エクスポート時のオプションは、インポート時のオプションと全く同じ。
+
+例：
+テーブルtb1を /tmp/out.csv にエクスポートする。
+mysql> select * into outfile '/tmp/out.csv' fields terminated by ',' from tb1;
+
+無事にエクスポートされてた。
+# cat /tmp/out.csv
+A101,佐藤,40
+A102,高橋,28
+A103,中川,20
+A104,渡辺,23
+A105,西沢,35
+
 

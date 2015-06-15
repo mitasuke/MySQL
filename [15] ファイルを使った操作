@@ -156,3 +156,46 @@ Database changed　　　　　← use db1 が実行された
 5 rows in set (0.00 sec)
 
 
+★わざわざMySQLにログインしなくても、Linuxのターミナルで以下のようにすれば、
+　テキストファイルに記述したSQL文を実行することができる。
+# mysql db1 -u root -pパスワード -e "source /tmp/sql.txt"
+
+※sql.txt に「use db1」と記載しているので、db1 の記載は省いても問題無い。
+
+
+★MySQLに対する処理をスクリプトとして作成しておけば、それを実行するだけで、データのエクスポートなどができるようになる。
+
+例：
+/tmp/csv.bat を以下の内容で作成しておく。（1行で書く！）
+mysql db1 -u root -pパスワード -e "select * into outfile '/tmp/out2.csv' fields terminated by ',' from tb1"
+
+実行できるように csv.bat に実行権限を付与する。
+# chmod +x /tmp/csv.bat
+
+実行する。
+# /tmp/csv.bat
+
+/tmp配下に out2.csv ファイルができている。
+# ls -la /tmp/
+total 28
+drwxrwxrwt  3 root  root  4096 Jun 15 16:17 .
+dr-xr-xr-x 25 root  root  4096 Mar 29 08:52 ..
+-rwxr-xr-x  1 root  root   106 Jun 15 16:16 csv.bat
+drwxrwxrwt  2 root  root  4096 Mar 29 08:50 .ICE-unix
+-rw-rw-rw-  1 mysql mysql   75 Jun 15 16:17 out2.csv
+-rw-rw-rw-  1 mysql mysql   75 Jun 15 15:23 out.csv
+-rw-r--r--  1 root  root    45 Jun 15 15:56 sql.txt
+
+中身を確認する。
+# cat /tmp/out2.csv
+A101,佐藤,40
+A102,高橋,28
+A103,中川,20
+A104,渡辺,23
+A105,西沢,35
+
+/tmp/out2.csv が存在する状態で csv.bat を実行するとエラーになる。
+# /tmp/csv.bat
+ERROR 1086 (HY000) at line 1: File '/tmp/out2.csv' already exists
+
+

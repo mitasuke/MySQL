@@ -199,3 +199,26 @@ A105,西沢,35
 ERROR 1086 (HY000) at line 1: File '/tmp/out2.csv' already exists
 
 
+★実行した結果をファイルに保存する。
+tee 出力するファイル名;
+
+例：
+MySQLにログインした状態で実行する。
+mysql> tee log.txt
+Logging to file 'log.txt'
+
+SQL文をいくつか実行する。
+mysql> select * from tb;
+mysql> select * from tb1;
+※ここには記載していないが、SQL文の結果は、画面にも表示されると共に tee で指定したファイルにも記録されている。
+
+ファイルへの出力を中止する。
+mysql> notee
+Outfile disabled.
+
+MySQLからログアウトして、出力されたファイルを確認すると、 tee から notee までの間に実行したコマンドが
+全て記録されていることがわかる。
+# cat log.txt
+
+※ファイルはカレントディレクトリに出力されるので、ls を実行すればあるはず。
+

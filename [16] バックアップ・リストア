@@ -1,1 +1,50 @@
+データベースの全ての内容を書き出すことを「ダンプする」と言う。
+バックアップしたデータをデータベースに戻すことを「リストアする」と言う。
+
+
+★データベースをダンプする。　（コマンドプロンプトやターミナルで実行する）
+mysqldump -u ユーザ名 -pパスワード データベース名 > 出力ファイル名;
+
+例：
+データベースdb1のダンプを /tmp/db1_out.txt に出力する。
+# mysqldump -u root -pパスワード db1 > /tmp/db1_out.txt
+
+ファイルがあるか確認。
+# ls /tmp/
+csv.bat  db1_out.txt  out2.csv  out.csv  sql.txt
+
+内容を確認するとdb1のダンプが取得できていることがわかる。（db1を再作成するためのSQL文がずらずらと書いてある）
+# cat /tmp/db1_out.txt
+-- MySQL dump 10.13  Distrib 5.5.42, for Linux (x86_64)
+--
+-- Host: localhost    Database: db1
+-- ------------------------------------------------------
+-- Server version       5.5.42
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+～～～省略～～～
+
+
+★ダンプファイルをリストアする時、戻す先のデータベースはあらかじめ作成しておく必要がある。
+
+★リストアもコマンドプロンプトやターミナルから実行する。
+
+例：
+事前に、ダンプを流し込む(復旧先である)データベースdb2を作成しておく。
+# mysqladmin -u root -pパスワード create db2
+
+リストアを開始。
+# mysql -u root -pパスワード db2 < /tmp/db1_out.txt
+
+MySQLにログインして、db2が存在することを確認。
+mysql> show databases;
+mysql> use db2
+mysql> show tables;
+
+
+★リストアに失敗する場合、文字コード問題が絡んでいる可能性がある。
+　ダンプやリストアをする際に文字コードを指定しないと、デフォルトの文字コードでファイル入出力が行われる。
+　なので、日本語の2バイトコードが原因となって、エラーになることがある。
+
 

@@ -274,3 +274,20 @@ Empty set (0.00 sec)
 
 ★主キーからはインデックスは消せないっぽい？
 
+
+★テーブルにロックをかけることができる。
+LOCK TABLES テーブル名 ロックの種類;
+
+ロックの種類は以下の通り。
+READ・・・SELECT以外は誰であってもできなくなる。
+READ LOCAL・・・ロックをかけたユーザだけSELECT以外はできなくなる。 ストレージエンジンがInnoDBの場合は、READと同じになる。
+WRITE・・・ロックをかけたユーザ以外は全ての操作ができない。 ロックをかけたユーザ自身は全ての操作ができる。
+
+例：
+mysql> lock tables tb1 read;
+mysql> lock tables tb1 write;
+
+
+★全てのテーブルのロックを解除する。
+UNLOCK TABLES;
+

@@ -56,6 +56,7 @@ Starting mysqld:                                           [FAILED]
 
 
 色々試した結果、「default-character-set=utf8」をコメントアウトしたら起動した・・・。
+MySQL5.5から「default-character-set」は使えなくなったので、「character-set-server=utf8」とするのが正しいらしい。
 vi /etc/my.cnf
 
 [mysqld]の中の1行をコメントアウト

@@ -1,0 +1,147 @@
+参考：http://www.checksite.jp/mysql-replication/
+参考：http://www.casleyconsulting.co.jp/blog-engineer/mysql/%E3%80%90dba%E5%88%9D%E7%B4%9A%E8%80%85%E5%90%91%E3%81%91%E3%80%91mysql-%E3%83%AC%E3%83%97%E3%83%AA%E3%82%B1%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%B3%E3%81%AE%E8%A8%AD%E5%AE%9A/
+
+参考：http://wiki.bit-hive.com/tomizoo/pg/MySQL%20%A5%EC%A5%D7%A5%EA%A5%B1%A1%BC%A5%B7%A5%E7%A5%F3%A4%CE%C0%DF%C4%EA
+参考：http://diary.bis5.net/2012/10/02/112.html
+
+
+想定していた構成：
+===========================================
+lamp (VMwarePlayer上) 　がmaster
+aws (EC2) がslave
+master → slave へレプリケーションする。
+===========================================
+
+厳しそうなので以下の構成にする：
+===========================================
+aws (EC2) 　がslave
+aws-2 (EC2) がmaster　（EIP未設定なのでシャットダウンするとIP変わる）
+master → slave へレプリケーションする。
+===========================================
+
+という訳なので、以下のような流れでやることにする。
+① aws-2 にMySQLをインストールするところから実施する。
+② lamp の MySQLデータをawsにリストアする。
+③ aws から aws-2 にMySQLデータをリストアする。
+④ レプリケーションの設定作業を開始する。
+
+
+① aws-2 にMySQLをインストールして初期設定する。
+
+# yum install mysql-server mysql-devel
+================================================================================
+ Package                   Arch     Version                Repository      Size
+================================================================================
+Installing:
+ mysql-devel               noarch   5.5-1.6.amzn1          amzn-main      2.7 k
+ mysql-server              noarch   5.5-1.6.amzn1          amzn-main      2.8 k
+Installing for dependencies:
+ keyutils-libs-devel       x86_64   1.5.8-3.12.amzn1       amzn-main       37 k
+ krb5-devel                x86_64   1.12.2-14.43.amzn1     amzn-updates   689 k
+ libcom_err-devel          x86_64   1.42.12-4.35.amzn1     amzn-updates    35 k
+ libselinux-devel          x86_64   2.1.10-3.22.amzn1      amzn-updates   157 k
+ libsepol-devel            x86_64   2.1.7-3.12.amzn1       amzn-main       70 k
+ libverto-devel            x86_64   0.2.5-4.9.amzn1        amzn-updates    11 k
+ mysql55                   x86_64   5.5.42-1.4.amzn1       amzn-main      7.5 M
+ mysql55-common            x86_64   5.5.42-1.4.amzn1       amzn-main       48 k
+ mysql55-devel             x86_64   5.5.42-1.4.amzn1       amzn-main      199 k
+ mysql55-libs              x86_64   5.5.42-1.4.amzn1       amzn-main      813 k
+ mysql55-server            x86_64   5.5.42-1.4.amzn1       amzn-main       13 M
+ openssl-devel             x86_64   1:1.0.1k-10.87.amzn1   amzn-updates   1.5 M
+ perl-Compress-Raw-Bzip2   x86_64   2.061-3.11.amzn1       amzn-main       33 k
+ perl-Compress-Raw-Zlib    x86_64   1:2.061-4.1.amzn1      amzn-main       61 k
+ perl-DBD-MySQL            x86_64   4.023-5.17.amzn1       amzn-main      148 k
+ perl-DBI                  x86_64   1.627-4.8.amzn1        amzn-main      855 k
+ perl-Data-Dumper          x86_64   2.145-3.5.amzn1        amzn-main       49 k
+ perl-IO-Compress          noarch   2.061-2.12.amzn1       amzn-main      298 k
+ perl-Net-Daemon           noarch   0.48-5.5.amzn1         amzn-main       58 k
+ perl-PlRPC                noarch   0.2020-14.7.amzn1      amzn-main       39 k
+ zlib-devel                x86_64   1.2.8-7.18.amzn1       amzn-main       53 k
+
+Transaction Summary
+================================================================================
+
+# rpm -qa | grep mysql
+mysql-devel-5.5-1.6.amzn1.noarch
+mysql55-libs-5.5.42-1.4.amzn1.x86_64
+mysql55-common-5.5.42-1.4.amzn1.x86_64
+mysql55-server-5.5.42-1.4.amzn1.x86_64
+mysql55-devel-5.5.42-1.4.amzn1.x86_64
+mysql-server-5.5-1.6.amzn1.noarch
+mysql55-5.5.42-1.4.amzn1.x86_64
+
+# chkconfig mysqld on ; chkconfig --list mysqld
+mysqld          0:off   1:off   2:on    3:on    4:on    5:on    6:off
+
+
+# /etc/init.d/mysqld start
+# /etc/init.d/mysqld status
+mysqld (pid  2945) is running...
+
+# mysql -u root
+
+mysql> set password for root@localhost=password('設定するパスワード');
+mysql> exit
+
+# mysql -u root
+ERROR 1045 (28000): Access denied for user 'root'@'localhost' (using password: NO)
+# mysql -u root -p
+Enter password:
+
+mysql> status
+--------------
+mysql  Ver 14.14 Distrib 5.5.42, for Linux (x86_64) using readline 5.1
+
+Connection id:          4
+Current database:
+Current user:           root@localhost
+SSL:                    Not in use
+Current pager:          stdout
+Using outfile:          ''
+Using delimiter:        ;
+Server version:         5.5.42 MySQL Community Server (GPL)
+Protocol version:       10
+Connection:             Localhost via UNIX socket
+Server characterset:    latin1
+Db     characterset:    latin1
+Client characterset:    utf8
+Conn.  characterset:    utf8
+UNIX socket:            /var/lib/mysql/mysql.sock
+Uptime:                 2 min 49 sec
+
+Threads: 1  Questions: 11  Slow queries: 0  Opens: 33  Flush tables: 1  Open tables: 26  Queries per second avg: 0.065
+--------------
+
+# vi /etc/my.cnf
+--------------------------------------
+character-set-server=utf8　★追加
+skip-character-set-client-handshake　★追加
+--------------------------------------
+
+# /etc/init.d/mysqld restart
+Stopping mysqld:                                           [  OK  ]
+Starting mysqld:                                           [  OK  ]
+
+mysql> status
+--------------
+mysql  Ver 14.14 Distrib 5.5.42, for Linux (x86_64) using readline 5.1
+
+Connection id:          2
+Current database:
+Current user:           root@localhost
+SSL:                    Not in use
+Current pager:          stdout
+Using outfile:          ''
+Using delimiter:        ;
+Server version:         5.5.42 MySQL Community Server (GPL)
+Protocol version:       10
+Connection:             Localhost via UNIX socket
+Server characterset:    utf8
+Db     characterset:    utf8
+Client characterset:    utf8
+Conn.  characterset:    utf8
+UNIX socket:            /var/lib/mysql/mysql.sock
+Uptime:                 2 min 52 sec
+
+Threads: 1  Questions: 16  Slow queries: 0  Opens: 33  Flush tables: 1  Open tables: 26  Queries per second avg: 0.093
+--------------

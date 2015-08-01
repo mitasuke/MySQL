@@ -1,0 +1,174 @@
+aws を Slave
+aws-2 を Master
+にする。
+
+
+aws-2でMySQLにログインして、
+# mysql -u root -p
+
+レプリケーション用のユーザー(rep)を作成する。
+mysql> GRANT REPLICATION SLAVE ON *.* TO rep@slaveのIPアドレス IDENTIFIED BY 'P@ssw0rd';
+
+ユーザーできてる。
+mysql> select user,host from mysql.user;
++-----------+-------------+
+| user      | host        |
++-----------+-------------+
+| lampuser  | %           |
+| root      | 127.0.0.1   |
+| rep       | slaveのIPアドレス |
+| cactiuser | localhost   |
+| root      | localhost   |
+| zabbix    | localhost   |
++-----------+-------------+
+
+
+aws-2でmaster用の設定をする。
+# vi /etc/my.cnf
+------------------------------
+[mysqld]
+log-bin=mysql-bin
+server-id=1
+------------------------------
+
+設定を有効化
+# /etc/init.d/mysqld restart
+mysqld を停止中:                                           [  OK  ]
+mysqld を起動中:                                           [  OK  ]
+
+
+master から slave にMySQLデータをコピーする。
+
+master側でデータベース更新を防ぐ為にロックして、
+mysql> FLUSH TABLES WITH READ LOCK;
+
+この数値をメモっておく。
+mysql> SHOW MASTER STATUS;
++------------------+----------+--------------+------------------+
+| File             | Position | Binlog_Do_DB | Binlog_Ignore_DB |
++------------------+----------+--------------+------------------+
+| mysql-bin.000001 |      107 |              |                  |
++------------------+----------+--------------+------------------+
+
+
+別セッションで master に接続して、MySQLダンプを取得しておく。
+※MySQLから一旦抜けてダンプを取ると、ロックが解除されるらしい。
+$ mysqldump -u root -p --all-database --events > mysqlall.dump
+
+ダンプとれた。
+$ ls
+mysqlall.dump
+
+別セッションは閉じてOK
+$ exit
+
+master のMySQLロックを解除する。
+mysql> UNLOCK TABLES;
+
+master から slave にダンプファイルを転送する。
+$ scp mysqlall.dump 52.68.40.99:/home/k_mita/
+mysqlall.dump                                 100% 2100KB   2.1MB/s   00:00
+
+転送できた。
+[root@aws k_mita]# ls -l | grep mysql
+-rw-r--r-- 1 k_mita k_mita 2150284 Aug  1 18:33 mysqlall.dump
+
+slave側でMySQLダンプファイルをリストアする。
+# mysql -u root -p < mysqlall.dump
+
+slave で設定を行う。
+# vi /etc/my.cnf
+-------------------------------------
+server-id=2
+-------------------------------------
+
+slaveでmasterに接続するための設定をする。
+mysql> CHANGE MASTER TO MASTER_HOST='masterのIPアドレス', MASTER_USER='rep', MASTER_PASSWORD='rep用のパスワード', MASTER_LOG_FILE='mysql-bin.000001', MASTER_LOG_POS=107;
+
+slave で設定反映のためにMySQLを再起動する。
+# /etc/init.d/mysqld restart
+Stopping mysqld:                                           [  OK  ]
+Starting mysqld:                                           [  OK  ]
+
+slave でレプリケーションを開始する。
+mysql> start slave;
+Query OK, 0 rows affected (0.00 sec)
+
+slave でレプリケーションの状況を確認する。
+mysql> show slave status \G
+*************************** 1. row ***************************
+               Slave_IO_State: Connecting to master
+                  Master_Host: masterのIPアドレス
+                  Master_User: rep
+                  Master_Port: 3306
+                Connect_Retry: 60
+              Master_Log_File: mysql-bin.000001
+          Read_Master_Log_Pos: 107
+               Relay_Log_File: mysqld-relay-bin.000002
+                Relay_Log_Pos: 4
+        Relay_Master_Log_File: mysql-bin.000001
+             Slave_IO_Running: Connecting　　★Yesになっていない・・・。
+            Slave_SQL_Running: Yes
+              Replicate_Do_DB:
+          Replicate_Ignore_DB:
+           Replicate_Do_Table:
+       Replicate_Ignore_Table:
+      Replicate_Wild_Do_Table:
+  Replicate_Wild_Ignore_Table:
+                   Last_Errno: 0
+                   Last_Error:
+                 Skip_Counter: 0
+          Exec_Master_Log_Pos: 107
+              Relay_Log_Space: 107
+              Until_Condition: None
+               Until_Log_File:
+                Until_Log_Pos: 0
+           Master_SSL_Allowed: No
+           Master_SSL_CA_File:
+           Master_SSL_CA_Path:
+              Master_SSL_Cert:
+            Master_SSL_Cipher:
+               Master_SSL_Key:
+        Seconds_Behind_Master: NULL
+Master_SSL_Verify_Server_Cert: No
+                Last_IO_Errno: 0
+                Last_IO_Error:
+               Last_SQL_Errno: 0
+               Last_SQL_Error:
+  Replicate_Ignore_Server_Ids:
+             Master_Server_Id: 0
+
+
+slave のログファイルにエラーが出てる。
+# less /var/log/mysqld.log
+150801 22:54:51 [ERROR] Slave I/O: error connecting to master 'rep@slaveのIPアドレス:3306' - retry-time: 60  retries: 86400, Error_code: 2003
+
+「Error_code: 2003」は、slaveからmasterに接続できなくて出るエラーとのこと。（アクセス拒否）
+なんで？？
+
+こことか参考：http://pyoonn.hatenablog.com/entry/2015/01/09/133102
+
+
+master では3306番ポートは「LISTEN」状態になっているので大丈夫な気もする・・・。
+$ netstat -tlpn
+(No info could be read for "-p": geteuid()=501 but you should be root.)
+Active Internet connections (only servers)
+Proto Recv-Q Send-Q Local Address               Foreign Address             State       PID/Program name
+tcp        0      0 0.0.0.0:22                  0.0.0.0:*                   LISTEN      -
+tcp        0      0 127.0.0.1:25                0.0.0.0:*                   LISTEN      -
+tcp        0      0 0.0.0.0:3306                0.0.0.0:*                   LISTEN      -
+tcp        0      0 :::80                       :::*                        LISTEN      -
+tcp        0      0 :::22                       :::*                        LISTEN      -
+
+master で slave からの接続を許可するように設定する。
+mysql>grant all privileges on *.* to rep@slaveのIPアドレス;
+
+slave から master へMySQL接続ができるか？
+# mysql -h masterのIPアドレス -u root -p
+Enter password:
+　⇒ 反応が戻ってこない・・・。
+
+master,slave でMySQLを再起動してどうなるか？
+変わらずエラーが出続けている。
+
+もうわからないので一旦放置

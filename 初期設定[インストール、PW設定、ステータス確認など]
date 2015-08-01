@@ -8,8 +8,8 @@ MySQLが自動起動する設定になっていることを確認
 # chkconfig --list mysqld
 mysqld         	0:off	1:off	2:on	3:on	4:on	5:on	6:off
 
-試しにMySQLサービスを再起動
-# /etc/init.d/mysqld restart
+MySQLサービスを起動する
+# /etc/init.d/mysqld start
 
 MySQLサービスの状態を確認
 # /etc/init.d/mysqld status

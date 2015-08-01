@@ -11,7 +11,7 @@ $ mysqldump -u root -p --all-database --events > awsmysql.dump
 awsmysql.dump
 
 aws から aws-2 にダンプを転送する。
-$ scp /home/k_mita/awsmysql.dump 52.69.46.29:/home/k_mita/
+$ scp /home/k_mita/awsmysql.dump aws-2のIPアドレス:/home/k_mita/
 awsmysql.dump                                 100% 2100KB   2.1MB/s   00:00
 
 aws-2 で転送されていることを確認する。

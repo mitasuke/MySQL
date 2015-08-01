@@ -1,1 +1,47 @@
+② lamp から aws へのMySQLデータリストアは面倒なので省略。
 
+
+③ aws から aws-2 へMySQLデータリストアを行う。
+
+aws側でMySQLダンプ取る。
+$ mysqldump -u root -p --all-database --events > awsmysql.dump
+
+取れた。
+# ls | grep mysql
+awsmysql.dump
+
+aws から aws-2 にダンプを転送する。
+$ scp /home/k_mita/awsmysql.dump 52.69.46.29:/home/k_mita/
+awsmysql.dump                                 100% 2100KB   2.1MB/s   00:00
+
+aws-2 で転送されていることを確認する。
+$ ls
+awsmysql.dump
+
+MySQLデータベース全体をリストアして、
+# mysql -u root -p < awsmysql.dump
+Enter password:
+
+aws-2 で MySQLにログインして、
+# mysql -u root -p
+Enter password:
+
+リストアできているか確認。
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| cacti              |
+| db1                |
+| db2                |
+| lampdb             |
+| mysql              |
+| performance_schema |
+| test               |
+| zabbix             |
++--------------------+
+
+mysql> use db1
+mysql> show tables;
+mysql> select * from tb1;

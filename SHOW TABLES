@@ -66,3 +66,6 @@ mysql> show tables like '%tb%';
 
 「%tb」ならば「テーブル名の最後が tb で終わるテーブル」
 「tb%」ならば「テーブル名の最初が tb で始まるテーブル」
+
+★恐らく一番使いやすいのはこれ。
+SHOW TABLES FROM データベース名 LIKE '%検索文字列%';

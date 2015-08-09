@@ -1,0 +1,24 @@
+SHOW DATABASES
+
+現時点で存在するデータベースの一覧を確認できる。
+これでデータベース名を確認してから「use データベース名」で切り替える。
+
+例：
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| cacti              |
+| db1                |
+| db2                |
+| lampdb             |
+| mysql              |
+| performance_schema |
+| test               |
+| zabbix             |
++--------------------+
+
+使用するデータベースを切り替える。
+mysql> use db1
+Database changed

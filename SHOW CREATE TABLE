@@ -1,0 +1,18 @@
+SHOW CREATE TABLE ～
+
+指定したテーブルを作る為の「CREATE TABLE」文を表示させる。
+
+同じ構造のテーブルを新たに作る際に「CREATE TABLE」を流用できる。
+指定したテーブルが複数テーブルの UNION で作られている場合、どのテーブルから作られているのか確認することもできる。
+
+例：
+mysql> show create table tb1 \G
+*************************** 1. row ***************************
+       Table: tb1
+Create Table: CREATE TABLE `tb1` (
+  `bang` varchar(10) DEFAULT NULL,
+  `nama` varchar(10) DEFAULT NULL,
+  `tosi` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
+
+「\G」ではなく「;」にすると、非常に見づらくなる・・・。

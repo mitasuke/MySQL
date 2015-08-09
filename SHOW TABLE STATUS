@@ -1,0 +1,41 @@
+SHOW TABLE STATUS
+
+テーブルに関する詳細情報（含まれているデータ数、最終更新時間など）を表示させる。
+「\G」を使って表示させた方がみやすい。
+
+
+例：
+mysql> show table status \G
+*************************** 11. row ***************************
+           Name: tb1
+         Engine: InnoDB
+        Version: 10
+     Row_format: Compact
+           Rows: 5
+ Avg_row_length: 3276
+    Data_length: 16384
+Max_data_length: 0
+   Index_length: 0
+      Data_free: 6291456
+ Auto_increment: NULL
+    Create_time: 2015-08-01 22:45:12
+    Update_time: NULL
+     Check_time: NULL
+      Collation: utf8_general_ci
+       Checksum: NULL
+ Create_options:
+        Comment:
+
+
+データベースを指定する時：
+SHOW TABLE STATUS FROM データベース名 \G
+
+
+「SHOW TABLE STATUS LIKE ～」で、テーブルを指定することもできる。
+
+例：
+mysql> show table status like 'tb1' \G
+
+
+★一番使いそうなのはこれ。
+SHOW TABLE STATUS FROM データベース名 LIKE '&検索文字列&'

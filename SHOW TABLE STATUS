@@ -38,4 +38,4 @@ mysql> show table status like 'tb1' \G
 
 
 ★一番使いそうなのはこれ。
-SHOW TABLE STATUS FROM データベース名 LIKE '&検索文字列&'
+SHOW TABLE STATUS FROM データベース名 LIKE '%検索文字列%'

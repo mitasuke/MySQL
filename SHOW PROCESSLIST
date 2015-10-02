@@ -1,0 +1,52 @@
+現在実行されているプロセスの一覧を確認できる。
+バッチ処理が動いていることを確認したり、クエリ実行後に反応が返ってこない時などに使うかと。
+
+実行例：
+
+mysql> show processlist \G
+*************************** 1. row ***************************
+     Id: 1
+   User: system user
+   Host:
+     db: NULL
+Command: Connect
+   Time: 685344
+  State: Slave has read all relay log; waiting for the slave I/O thread to update it
+   Info: NULL
+*************************** 2. row ***************************
+     Id: 2
+   User: system user
+   Host:
+     db: NULL
+Command: Connect
+   Time: 685344
+  State: Connecting to master
+   Info: NULL
+*************************** 3. row ***************************
+     Id: 4
+   User: root
+   Host: localhost
+     db: NULL
+Command: Query
+   Time: 0
+  State: NULL
+   Info: show processlist
+
+
+＜各出力項目の意味について＞
+
+参考：http://d.hatena.ne.jp/takami_hiroki/20101027/p1
+
+ID・・・接続識別子（KILLでプロセスを落とす時は、この値を指定する）
+User・・・クエリを発行したMySQLユーザー
+Host・・・クエリを発行しているクライアントのホスト名
+db・・・デフォルトデータベース
+Command・・・スレッドが実行しているコマンドのタイプ
+Time・・・スレッドが現在の状態になってからの秒数
+State・・・スレッドの状態
+Info・・・スレッドが実行中のクエリ
+
+
+Infoが100文字以上になった際に途切れないようにするには FULL をつけてやる。
+
+mysql> show full processlist \G

@@ -1,0 +1,33 @@
+
+ログイン
+/usr/local/mysql/bin/mysql -uroot -p
+
+スレーブ側で状況確認
+show slave status\G
+
+Seconds_Behind_Master が 0 ならばレプリケーション遅延なし。
+
+Master_Log_File と Relay_Master_Log_File が mysql-bin.000100 と
+なっているとしたら、mysql-bin.000100 は消したらアウト。
+直前の mysql-bin.000099 までは消して良い。
+
+マスター側でbinログファイルの確認（binログの一覧が出る）
+show master logs;
+
+cd /data/mysql/data（MySQLデータが存在するディレクトリまで移動）
+
+消す対象のbinログをつかんでいるプロセスが無いかざっと確認
+fuser ファイル名
+
+最新のbinログファイルを fuser で確認すると、つかんでいるプロセスの
+プロセス番号がわかるので ps でどのプロセスがつかんでいるかわかる。
+（基本的にMySQLプロセスだと思うけど）
+
+mysql-bin.000098 まで削除する場合はこのようにする。
+PURGE MASTER LOGS TO 'mysql-bin.000099';
+
+消えたか確認
+show master logs;
+
+スレーブ側でステータス確認
+show slave status\G

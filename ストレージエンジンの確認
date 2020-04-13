@@ -1,0 +1,7 @@
+mysql> use information_schema
+mysql> select table_name,engine from tables;
+
+DBごとに
+
+mysql> show databases;
+mysql> select table_name,engine from tables where table_schema = 'DB名';
